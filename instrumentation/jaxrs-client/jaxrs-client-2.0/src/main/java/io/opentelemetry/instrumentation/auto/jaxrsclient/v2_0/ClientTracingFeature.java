@@ -28,6 +28,7 @@ public class ClientTracingFeature implements Feature {
   @Override
   public boolean configure(FeatureContext context) {
     context.register(new ClientTracingFilter());
+    context.register(new ClientTracingInterceptor());
     log.debug("ClientTracingFilter registered");
     return true;
   }

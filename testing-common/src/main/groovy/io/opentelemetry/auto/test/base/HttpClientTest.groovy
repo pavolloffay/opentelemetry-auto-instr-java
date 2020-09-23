@@ -115,7 +115,7 @@ abstract class HttpClientTest extends AgentTestRunner {
     then:
     status == 200
     assertTraces(1) {
-      trace(0, 2 + extraClientSpans()) {
+      trace(0, 2 + extraClientSpans(method)) {
         clientSpan(it, 0, null, method, tagQueryString, url)
         serverSpan(it, 1 + extraClientSpans(), span(extraClientSpans()))
       }
@@ -143,10 +143,10 @@ abstract class HttpClientTest extends AgentTestRunner {
     then:
     status == 200
     assertTraces(1) {
-      trace(0, 3 + extraClientSpans()) {
+      trace(0, 3 + extraClientSpans(method)) {
         basicSpan(it, 0, "parent")
         clientSpan(it, 1, span(0), method)
-        serverSpan(it, 2 + extraClientSpans(), span(1 + extraClientSpans()))
+        serverSpan(it, 2 + extraClientSpans(method), span(1 + extraClientSpans(method)))
       }
     }
 
@@ -433,6 +433,7 @@ abstract class HttpClientTest extends AgentTestRunner {
       if (exception) {
         errorEvent(exception.class, exception.message)
       }
+      event()
       attributes {
         "${SemanticAttributes.NET_TRANSPORT.key()}" "IP.TCP"
         "${SemanticAttributes.NET_PEER_NAME.key()}" uri.host
@@ -474,7 +475,7 @@ abstract class HttpClientTest extends AgentTestRunner {
     return method != null ? "HTTP $method" : HttpClientTracer.DEFAULT_SPAN_NAME
   }
 
-  int extraClientSpans() {
+  int extraClientSpans(String method) {
     0
   }
 

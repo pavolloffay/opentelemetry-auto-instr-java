@@ -58,6 +58,7 @@ public final class JaxRsClientInstrumentation extends Instrumenter.Default {
       packageName + ".ClientTracingFeature",
       packageName + ".ClientTracingFilter",
       packageName + ".InjectAdapter",
+      packageName + ".ClientTracingInterceptor",
     };
   }
 

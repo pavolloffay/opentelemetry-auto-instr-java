@@ -79,6 +79,16 @@ class JerseyClientAsyncTest extends JaxRsClientAsyncTest {
   boolean testCircularRedirects() {
     false
   }
+
+//  @Override
+//  def int extraClientSpans(String method) {
+//    println("--->\n\n\n extraClientSpans")
+//    println(method)
+//    if (method == "PUT" || method == "POST") {
+//      return 1
+//    }
+//    0
+//  }
 }
 
 @Timeout(5)
