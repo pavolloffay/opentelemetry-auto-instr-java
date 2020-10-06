@@ -78,6 +78,7 @@ public class Servlet3BodyInstrumentation extends Instrumenter.Default {
       packageName + ".BufferingHttpServletRequest",
       packageName + ".BufferingHttpServletRequest$ServletInputStreamWrapper",
       packageName + ".BufferingHttpServletRequest$BufferedReaderWrapper",
+      packageName + ".Block",
     };
   }
 
@@ -95,17 +96,25 @@ public class Servlet3BodyInstrumentation extends Instrumenter.Default {
     // request attribute key injected at first filerChain.doFilter
     private static final String ALREADY_LOADED = "__root_body_advice_already_executed";
 
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void start(
+    @Advice.OnMethodEnter(suppress = Throwable.class, skipOn = Block.class)
+    public static Object start(
         @Advice.Argument(value = 0, readOnly = false) ServletRequest request,
         @Advice.Argument(value = 1, readOnly = false) ServletResponse response,
         @Advice.Local("rootStart") Boolean rootStart) {
       if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
-        return;
+        return null;
       }
+      // TODO run on every doFilter and check if user removed wrapper
       // run the instrumentation only for the root FilterChain.doFilter()
+      // TODO get to the
+      // if (request instanceof HttpServletRequestWrapper) {
+      //   get to root
+      //  HttpServletRequestWrapper wrapper = (HttpServletRequestWrapper) request;
+      // }
+      // TODO what if user unwraps request and reads the body?
+
       if (request.getAttribute(ALREADY_LOADED) != null) {
-        return;
+        return null;
       }
       HttpServletRequest httpRequest = (HttpServletRequest) request;
       HttpServletResponse httpResponse = (HttpServletResponse) response;
@@ -115,23 +124,31 @@ public class Servlet3BodyInstrumentation extends Instrumenter.Default {
       System.out.println("---> BodyAdvice start");
       System.out.println(currentSpan);
 
+      rootStart = true;
+      response = new BufferingHttpServletResponse(httpResponse);
+      request = new BufferingHttpServletRequest(httpRequest, (HttpServletResponse) response);
+
       // set request headers
       Enumeration<String> headerNames = httpRequest.getHeaderNames();
       while (headerNames.hasMoreElements()) {
         String headerName = headerNames.nextElement();
         String headerValue = httpRequest.getHeader(headerName);
         currentSpan.setAttribute("request.header." + headerName, headerValue);
+        // Mock blocking
+        if (headerName.equals("block")) {
+          // TODO maybe do it in the exit method
+          ((BufferingHttpServletResponse) response).setStatus(403);
+          return new Block();
+        }
       }
-
-      rootStart = true;
-      response = new BufferingHttpServletResponse(httpResponse);
-      request = new BufferingHttpServletRequest(httpRequest, (HttpServletResponse) response);
+      return null;
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
     public static void stopSpan(
         @Advice.Argument(0) ServletRequest request,
         @Advice.Argument(1) ServletResponse response,
+        @Advice.Enter Object block,
         @Advice.Local("rootStart") Boolean rootStart) {
       if (rootStart != null) {
         if (!(request instanceof BufferingHttpServletRequest)
