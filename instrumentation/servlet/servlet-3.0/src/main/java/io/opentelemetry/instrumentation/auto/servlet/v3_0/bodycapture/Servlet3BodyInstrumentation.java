@@ -30,6 +30,7 @@ import io.opentelemetry.javaagent.tooling.Instrumenter;
 import io.opentelemetry.trace.Span;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -49,6 +50,11 @@ public class Servlet3BodyInstrumentation extends Instrumenter.Default {
   public Servlet3BodyInstrumentation() {
     super("servlet", "servlet-3");
     System.out.println("FilterChain advice");
+  }
+
+  @Override
+  public int getOrder() {
+    return 1;
   }
 
   @Override
@@ -79,6 +85,7 @@ public class Servlet3BodyInstrumentation extends Instrumenter.Default {
       packageName + ".BufferingHttpServletRequest$ServletInputStreamWrapper",
       packageName + ".BufferingHttpServletRequest$BufferedReaderWrapper",
       packageName + ".Block",
+      packageName + ".BodyCaptureAsyncListener",
     };
   }
 
@@ -163,22 +170,34 @@ public class Servlet3BodyInstrumentation extends Instrumenter.Default {
         System.out.println(response.getClass().getName());
         System.out.println(currentSpan);
 
-        BufferingHttpServletResponse bufferingResponse = (BufferingHttpServletResponse) response;
-        BufferingHttpServletRequest bufferingRequest = (BufferingHttpServletRequest) request;
-
-        // set response headers
-        bufferingResponse.getHeaderNames();
-        for (String headerName : bufferingResponse.getHeaderNames()) {
-          String headerValue = bufferingResponse.getHeader(headerName);
-          currentSpan.setAttribute("response.header." + headerName, headerValue);
+        AtomicBoolean responseHandled = new AtomicBoolean(false);
+        if (request.isAsyncStarted()) {
+          try {
+            System.out.println("is async adding listener");
+            request.getAsyncContext().addListener(new BodyCaptureAsyncListener(responseHandled, currentSpan));
+          } catch (IllegalStateException e) {
+            // org.eclipse.jetty.server.Request may throw an exception here if request became
+            // finished after check above. We just ignore that exception and move on.
+          }
         }
 
-        // Bodies are set at the end of processing once frameworks finished reading/writing.
-        // The bodies cannot be read at the start because we don't know whether framework will call
-        // gerReader or getInputStream.
-        currentSpan.setAttribute("response.body", bufferingResponse.getBufferAsString());
-        currentSpan.setAttribute(
-            "request.body", bufferingRequest.getByteBuffer().getBufferAsString());
+        if (!request.isAsyncStarted() && responseHandled.compareAndSet(false, true)) {
+          BufferingHttpServletResponse bufferingResponse = (BufferingHttpServletResponse) response;
+          BufferingHttpServletRequest bufferingRequest = (BufferingHttpServletRequest) request;
+
+          // set response headers
+          for (String headerName : bufferingResponse.getHeaderNames()) {
+            String headerValue = bufferingResponse.getHeader(headerName);
+            currentSpan.setAttribute("response.header." + headerName, headerValue);
+          }
+
+          // Bodies are set at the end of processing once frameworks finished reading/writing.
+          // The bodies cannot be read at the start because we don't know whether framework will call
+          // gerReader or getInputStream.
+          currentSpan.setAttribute("response.body", bufferingResponse.getBufferAsString());
+          currentSpan.setAttribute(
+              "request.body", bufferingRequest.getByteBuffer().getBufferAsString());
+        }
       }
     }
   }

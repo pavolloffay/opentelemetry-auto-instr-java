@@ -12,8 +12,6 @@ import javax.servlet.AsyncListener;
 import javax.servlet.http.HttpServletResponse;
 
 public class TagSettingAsyncListener implements AsyncListener {
-  private static final Servlet3HttpServerTracer servletHttpServerTracer =
-      new Servlet3HttpServerTracer();
 
   private final AtomicBoolean responseHandled;
   private final Span span;
@@ -26,21 +24,23 @@ public class TagSettingAsyncListener implements AsyncListener {
   @Override
   public void onComplete(AsyncEvent event) {
     if (responseHandled.compareAndSet(false, true)) {
-      servletHttpServerTracer.end(span, (HttpServletResponse) event.getSuppliedResponse());
+      System.out.println("Async tag listener onComplete");
+      Servlet3HttpServerTracer.TRACER.end(span, (HttpServletResponse) event.getSuppliedResponse());
     }
   }
 
   @Override
   public void onTimeout(AsyncEvent event) {
     if (responseHandled.compareAndSet(false, true)) {
-      servletHttpServerTracer.onTimeout(span, event.getAsyncContext().getTimeout());
+      Servlet3HttpServerTracer.TRACER.onTimeout(span, event.getAsyncContext().getTimeout());
     }
   }
 
   @Override
   public void onError(AsyncEvent event) {
     if (responseHandled.compareAndSet(false, true)) {
-      servletHttpServerTracer.endExceptionally(
+      System.out.println("Async tag listener onError");
+      Servlet3HttpServerTracer.TRACER.endExceptionally(
           span, event.getThrowable(), (HttpServletResponse) event.getSuppliedResponse());
     }
   }

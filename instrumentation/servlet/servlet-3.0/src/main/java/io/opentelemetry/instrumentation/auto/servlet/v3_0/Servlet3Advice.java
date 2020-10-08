@@ -77,6 +77,7 @@ public class Servlet3Advice {
     // In case of async servlets wait for the actual response to be ready
     if (request.isAsyncStarted()) {
       try {
+        System.out.println("servlet 3 advice is async");
         request.getAsyncContext().addListener(new TagSettingAsyncListener(responseHandled, span));
       } catch (IllegalStateException e) {
         // org.eclipse.jetty.server.Request may throw an exception here if request became
@@ -86,6 +87,7 @@ public class Servlet3Advice {
 
     // Check again in case the request finished before adding the listener.
     if (!request.isAsyncStarted() && responseHandled.compareAndSet(false, true)) {
+      System.out.println("Servlet 3 advice finishing span");
       TRACER.end(span, (HttpServletResponse) response);
     }
   }
