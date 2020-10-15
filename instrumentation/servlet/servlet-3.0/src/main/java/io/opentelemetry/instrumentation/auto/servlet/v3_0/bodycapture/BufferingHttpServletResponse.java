@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
@@ -192,10 +193,10 @@ public class BufferingHttpServletResponse extends HttpServletResponseWrapper {
     private static final Logger logger =
         LoggerFactory.getLogger(BufferingServletOutputStream.class);
 
-    private final OutputStream outputStream;
+    private final ServletOutputStream outputStream;
     private final ByteBufferData byteBufferData;
 
-    public BufferingServletOutputStream(OutputStream outputStream, ByteBufferData byteBufferData) {
+    public BufferingServletOutputStream(ServletOutputStream outputStream, ByteBufferData byteBufferData) {
       this.outputStream = outputStream;
       this.byteBufferData = byteBufferData;
     }
@@ -232,6 +233,16 @@ public class BufferingHttpServletResponse extends HttpServletResponseWrapper {
     @Override
     public void close() throws IOException {
       outputStream.close();
+    }
+
+    @Override
+    public boolean isReady() {
+      return outputStream.isReady();
+    }
+
+    @Override
+    public void setWriteListener(WriteListener writeListener) {
+      outputStream.setWriteListener(writeListener);
     }
   }
 
