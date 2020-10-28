@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package io.opentelemetry.instrumentation.reactor;
+package io.opentelemetry.javaagent.instrumentation.reactor;
 
 import io.opentelemetry.context.Scope;
 import org.reactivestreams.Subscriber;

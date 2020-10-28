@@ -5,6 +5,8 @@
 
 package io.opentelemetry.instrumentation.reactor
 
+import io.opentelemetry.javaagent.instrumentation.reactor.TracingOperator
+
 import static io.opentelemetry.instrumentation.test.utils.TraceUtils.basicSpan
 
 import io.opentelemetry.OpenTelemetry

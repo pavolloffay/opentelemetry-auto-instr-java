@@ -5,7 +5,6 @@
 
 package io.opentelemetry.javaagent.instrumentation.reactor;
 
-import io.opentelemetry.instrumentation.reactor.TracingOperator;
 import net.bytebuddy.asm.Advice;
 
 public class ReactorHooksAdvice {

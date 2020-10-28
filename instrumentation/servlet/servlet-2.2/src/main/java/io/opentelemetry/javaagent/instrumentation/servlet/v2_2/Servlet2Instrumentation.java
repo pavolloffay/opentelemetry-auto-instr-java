@@ -50,8 +50,8 @@ public final class Servlet2Instrumentation extends Instrumenter.Default {
   @Override
   public String[] helperClassNames() {
     return new String[] {
-      "io.opentelemetry.instrumentation.servlet.ServletHttpServerTracer",
-      "io.opentelemetry.instrumentation.servlet.HttpServletRequestGetter",
+      "io.opentelemetry.javaagent.instrumentation.servlet.ServletHttpServerTracer",
+      "io.opentelemetry.javaagent.instrumentation.servlet.HttpServletRequestGetter",
       packageName + ".ResponseWithStatus",
       packageName + ".Servlet2HttpServerTracer"
     };

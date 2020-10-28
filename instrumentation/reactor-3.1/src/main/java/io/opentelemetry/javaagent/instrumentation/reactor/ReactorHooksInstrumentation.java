@@ -26,9 +26,9 @@ public final class ReactorHooksInstrumentation extends Instrumenter.Default {
   @Override
   public String[] helperClassNames() {
     return new String[] {
-      "io.opentelemetry.instrumentation.reactor.TracingOperator$Lifter",
-      "io.opentelemetry.instrumentation.reactor.TracingOperator",
-      "io.opentelemetry.instrumentation.reactor.TracingSubscriber"
+      "io.opentelemetry.javaagent.instrumentation.reactor.TracingOperator$Lifter",
+      "io.opentelemetry.javaagent.instrumentation.reactor.TracingOperator",
+      "io.opentelemetry.javaagent.instrumentation.reactor.TracingSubscriber"
     };
   }
 

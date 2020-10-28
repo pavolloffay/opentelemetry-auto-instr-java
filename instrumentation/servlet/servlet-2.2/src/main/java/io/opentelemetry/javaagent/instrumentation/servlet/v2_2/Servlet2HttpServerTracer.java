@@ -5,7 +5,7 @@
 
 package io.opentelemetry.javaagent.instrumentation.servlet.v2_2;
 
-import io.opentelemetry.instrumentation.servlet.ServletHttpServerTracer;
+import io.opentelemetry.javaagent.instrumentation.servlet.ServletHttpServerTracer;
 
 public class Servlet2HttpServerTracer extends ServletHttpServerTracer<ResponseWithStatus> {
   public static final Servlet2HttpServerTracer TRACER = new Servlet2HttpServerTracer();
