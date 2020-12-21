@@ -112,6 +112,9 @@ public class GlobalIgnoresMatcher<T extends TypeDescription>
       if (name.equals("java.lang.ClassLoader")) {
         return false;
       }
+      if (name.equals("java.io.InputStream") || name.equals("java.io.ByteArrayInputStream")) {
+        return false;
+      }
 
       // Concurrent instrumentation modifies the structure of
       // Cleaner class incompatibly with java9+ modules.
